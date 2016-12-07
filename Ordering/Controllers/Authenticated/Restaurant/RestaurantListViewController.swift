@@ -8,47 +8,63 @@
 
 import UIKit
 import SwiftyJSON
+import CoreLocation
 
-class RestaurantListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class RestaurantListViewController: UIView, UITableViewDelegate, UITableViewDataSource {
     
     var tableView : UITableView!
+    var headerLabel : UILabel!
     var restaurants : [Restaurant]!
     var searchBar : UISearchBar = UISearchBar(frame:CGRect(x:0,y:0,width:200, height:30))
     var topOffset : CGFloat!
-    var basketButton : UIBarButtonItem!
+    var offloadFunction : ((_ restaurant: Restaurant) -> Void)?
+    var restaurantNeedsLoading : Bool = false
+    var locationManager = CLLocationManager()
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        self.topOffset = UIApplication.shared.statusBarFrame.height + (self.navigationController?.navigationBar.bounds.size.height)!
-        //self.searchBar.placeholder = "Search Restaurants"
-        //self.searchBar.showsCancelButton = true
-        //searchBar.sizeToFit()
-        
-        getRestaurants()
+    
+    override init(frame:CGRect) {
+        super.init(frame:frame)
     }
+    
+    init(frame: CGRect, restaurants: [Restaurant], getMenuAndNav:@escaping (_ restaurant: Restaurant)->Void) {
+        //Using closure, passed a function from the parent that get executed on click!
+        self.offloadFunction = getMenuAndNav
+        super.init(frame:frame)
+        self.restaurants = restaurants
+        self.setUpView()
+        
+    }
+    
+    
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+    }
+    
+    func refresh() {
+        
+    }
+    
+   
     
     func setUpView( ) {
         self.tableView = UITableView(frame: CGRect(x:0, y:0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height), style: UITableViewStyle.plain)
         
         self.tableView.delegate = self
         self.tableView.dataSource = self
-        
+
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        self.view.addSubview(self.tableView)
+        self.addSubview(self.tableView)
         
-        self.navigationItem.hidesBackButton = true
+        headerLabel = UILabel(frame:CGRect(x:100,y:10,width:UIScreen.main.bounds.width,height:20))
+        headerLabel.text = "Nearby"
+        self.tableView.tableHeaderView = headerLabel
         //self.navigationItem.titleView = searchBar
         
-        basketButton = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(basketButtonAction))
         
-        navigationItem.rightBarButtonItems = [basketButton]
 
     }
     
-    func basketButtonAction ( ) {
-        
-        BasketHelper.sharedInstance.navToBasket( _navController : (self.navigationController)! )
-    }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.restaurants.count
@@ -58,23 +74,20 @@ class RestaurantListViewController: UIViewController, UITableViewDelegate, UITab
         
         let cell: UITableViewCell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         let rest = self.restaurants[indexPath.row]
-        cell.textLabel!.text = rest.getName()
+        cell.textLabel!.text = rest.getName() +  " - " + (rest.isOpen() ? "Open":"Closed")
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        getMenuAndNav(restaurant: self.restaurants[indexPath.row])
-    }
-    
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        //getMenuAndNav(restaurant: self.restaurants[indexPath.row])
+        self.offloadFunction!(self.restaurants[indexPath.row])
     }
     
     
     func getRestaurants () {
-        RestaurantHelper.sharedInstance.getNearMe(onCompletion: {(restaurants: [Restaurant]?, error: NSError?) -> Void in
+        let userLong = self.locationManager.location?.coordinate.longitude
+        let userLat = self.locationManager.location?.coordinate.latitude
+        RestaurantHelper.sharedInstance.getNearMe(longitude: CLLocationDegrees(userLong!), latitude: CLLocationDegrees(userLat!), onCompletion: {(restaurants: [Restaurant]?, error: NSError?) -> Void in
             if(error == nil) {
                 self.restaurants = restaurants
                 self.setUpView()
@@ -84,19 +97,12 @@ class RestaurantListViewController: UIViewController, UITableViewDelegate, UITab
         })
     }
     
-    func getMenuAndNav ( restaurant: Restaurant ) {
-        RestaurantHelper.sharedInstance.getFullMenu(menuId: restaurant.getMenu().getId(), onCompletion:{(menu:Menu?, error: NSError?) -> Void in
-            if(error == nil){
-                let restaurantView = RestaurantViewController()
-                restaurant.setMenu(_menu: menu!)
-                restaurantView.restaurant = restaurant
-                BasketHelper.sharedInstance.setRestaurantId(_restaurantId: restaurant.getId())
-                self.navigationController?.pushViewController(restaurantView, animated: true)
-            }else {
-                print(error! as NSError)
-            }
-        })
+    func refreshRestaurants ( newRestaurants: [Restaurant]){
+        self.restaurants = newRestaurants
+        self.tableView.reloadData()
     }
+    
+        
     
     /*
      // MARK: - Navigation

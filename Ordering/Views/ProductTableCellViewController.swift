@@ -16,26 +16,30 @@ class ProductTableCellViewController: UITableViewCell {
     var productCost : UILabel!
     var productImage : UIImageView!
     var productDescription : UILabel!
+    var forRest : String!
     
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
         super.init(style:style, reuseIdentifier: reuseIdentifier)
         self.setupView(enableAddButton: false, enableRemoveButton: false)
     }
     
-    init(style : UITableViewCellStyle, reuseIdentifier: String?, enableAddButton: Bool?, enableRemoveButton: Bool?) {
+    init(style : UITableViewCellStyle, reuseIdentifier: String?, enableAddButton: Bool?, enableRemoveButton: Bool?, forRest:String) {
         
         
         super.init(style: style, reuseIdentifier: reuseIdentifier)
+        self.forRest = forRest
         self.setupView(enableAddButton: enableAddButton!, enableRemoveButton: enableRemoveButton!)
     }
     
-    init(style: UITableViewCellStyle, reuseIdentifier: String?, enableAddButton: Bool?){
+    init(style: UITableViewCellStyle, reuseIdentifier: String?, enableAddButton: Bool?, forRest:String){
         super.init(style:style, reuseIdentifier:reuseIdentifier)
+        self.forRest = forRest
         self.setupView(enableAddButton: enableAddButton!, enableRemoveButton: false)
     }
     
-    init(style: UITableViewCellStyle, reuseIdentifier: String?, enableRemoveButton: Bool?){
+    init(style: UITableViewCellStyle, reuseIdentifier: String?, enableRemoveButton: Bool?,  forRest:String){
         super.init(style:style, reuseIdentifier:reuseIdentifier)
+        self.forRest = forRest
         self.setupView(enableAddButton: false, enableRemoveButton: enableRemoveButton!)
     }
     
@@ -60,7 +64,7 @@ class ProductTableCellViewController: UITableViewCell {
         addToBasketBtn.layer.cornerRadius = 0.5 * addToBasketBtn.bounds.size.width
         addToBasketBtn.clipsToBounds = true
         addToBasketBtn.addTarget(self, action: #selector(addToBasketButtonAction), for: .touchUpInside)
-        addToBasketBtn.isHidden = !enableAddButton
+        
         
         let removeFromBasketBtn = UIButton(frame: CGRect(x:UIScreen.main.bounds.width - 10 - buttonWidthHeight,y: ((UIScreen.main.bounds.width * 0.2) + 20) - 10 - buttonWidthHeight,width:buttonWidthHeight,height:buttonWidthHeight))
         removeFromBasketBtn.setTitle("-", for: UIControlState())
@@ -69,7 +73,24 @@ class ProductTableCellViewController: UITableViewCell {
         removeFromBasketBtn.layer.cornerRadius = 0.5 * removeFromBasketBtn.bounds.size.width
         removeFromBasketBtn.clipsToBounds = true
         removeFromBasketBtn.addTarget(self, action: #selector(removeFromBasketButtonAction), for: .touchUpInside)
-        removeFromBasketBtn.isHidden = !enableRemoveButton
+       
+        if( BasketHelper.sharedInstance.isScannedIn ){
+            //user is scanned in 
+            //check which restaurant theyre scanned in to
+            if( BasketHelper.sharedInstance.getRestaurantId() == forRest ){
+                //this is the menu theyre scanned in to.
+                removeFromBasketBtn.isHidden = !enableRemoveButton
+                addToBasketBtn.isHidden = !enableAddButton
+            } else {
+                //not scanned in to this restaurant, tell them to scan in
+                removeFromBasketBtn.isHidden = true
+                addToBasketBtn.isHidden = true
+            }
+        } else {
+            removeFromBasketBtn.isHidden = true
+            addToBasketBtn.isHidden = true
+        }
+        
         
         self.contentView.addSubview(productTitle)
         self.contentView.addSubview(productCost)
@@ -78,6 +99,8 @@ class ProductTableCellViewController: UITableViewCell {
         self.contentView.addSubview(removeFromBasketBtn)
         self.contentView.addSubview(productDescription)
     }
+    
+    
     
     func addToBasketButtonAction ( ) {
         ProductCache.sharedInstance.putProduct(_product: product)

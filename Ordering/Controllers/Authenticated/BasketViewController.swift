@@ -18,6 +18,7 @@ class BasketViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.backgroundColor = .white
         self.basketContents = BasketHelper.sharedInstance.getBasket()
         self.navigationItem.title = "Basket"
         self.tableView = UITableView(frame: CGRect(x:0, y:0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - (tabBarController?.tabBar.frame.size.height)!), style: UITableViewStyle.plain)
@@ -102,7 +103,7 @@ class BasketViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell: ProductTableCellViewController = ProductTableCellViewController(style: .subtitle, reuseIdentifier: "cell", enableRemoveButton: true)
+        let cell: ProductTableCellViewController = ProductTableCellViewController(style: .subtitle, reuseIdentifier: "cell", enableRemoveButton: true, forRest:BasketHelper.sharedInstance.getRestaurantId())
         cell.deleteDelegate = self
         let rest = self.basketContents[indexPath.row]
         cell.setValues(_product: rest)

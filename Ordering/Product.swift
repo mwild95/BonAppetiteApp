@@ -13,6 +13,7 @@ class Product : OwnedBy{
     
     var price : Double = 0
     var description : String!
+    var ingredients : [Ingredient] = []
     
     override init ( ) {
         super.init()
@@ -25,6 +26,7 @@ class Product : OwnedBy{
         self.setOwningUser((productJSON["owning_user"].string) ?? "")
         self.setPrice( _price : (productJSON["price"].double!))
         self.setDescription(_description: (productJSON["description"].string) ?? "")
+        self.setIngredients(_ingredients: productJSON["ingredients"].array!)
     }
     
     func setPrice ( _price: Double ) {
@@ -41,5 +43,11 @@ class Product : OwnedBy{
     
     func getDescription ( ) -> String {
         return self.description
+    }
+    
+    func setIngredients( _ingredients: [JSON] ) {
+        for ingredient in _ingredients {
+            self.ingredients.append(Ingredient(_ingredientJSON: ingredient))
+        }
     }
 }

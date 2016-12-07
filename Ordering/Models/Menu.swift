@@ -54,8 +54,11 @@ class Menu : OwnedBy{
     func setSections ( _sections : [JSON] ) {
         //loop through and create a section
         for section in _sections {
-            let tempObj = Section(sectionJSON: section)
-            self.sections.append(tempObj)
+            if(section.type == .dictionary ) {
+                let tempObj = Section(sectionJSON: section)
+                self.sections.append(tempObj)
+            }
+            
         }
     }
     

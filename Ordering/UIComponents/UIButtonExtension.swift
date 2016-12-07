@@ -15,11 +15,13 @@ extension UIButton {
         return 50
     }
     
-    func defaultStyle ( ) {
+    func secondaryDefaultStyle ( ) {
         self.backgroundColor = ColorHelper.mainColor
+
+        
     }
     
-    func secondaryDefaultStyle ( ) {
+    func defaultStyle ( ) {
         self.backgroundColor = .clear
         self.layer.borderWidth = 2
         self.layer.borderColor = UIColor.lightGray.cgColor

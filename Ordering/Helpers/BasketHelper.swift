@@ -13,7 +13,8 @@ class BasketHelper {
     static let sharedInstance = BasketHelper()
     fileprivate var products : [String] = []
     fileprivate var restaurantId : String = ""
-    
+    fileprivate var tableNo : String = ""
+    var isScannedIn : Bool = false
     fileprivate var basketViewController: BasketViewController = BasketViewController()
     
     init ( ){
@@ -64,6 +65,20 @@ class BasketHelper {
     }
     
     func getRestaurantId ( ) -> String {
-        return self.restaurantId
+        return self.restaurantId    }
+    
+    func getTableNo ( ) -> String {
+        return self.tableNo
+    }
+    
+    func setTableNo( _tableNo: String ) {
+        self.tableNo = _tableNo
+    }
+    
+    func scanOut ( ) {
+        self.isScannedIn = false
+        self.products = []
+        self.restaurantId = ""
+        self.tableNo = ""
     }
 }
